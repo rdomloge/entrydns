@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: entrydnsupdater
+  namespace: entrydns
+spec:
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  schedule: "*/5 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: curl-command
+            image: curlimages/curl
+            env:
+            -  name: TOKEN
+               valueFrom:
+                 secretKeyRef:
+                   name: tokensecret
+                   key: token
+                   optional: false
+            imagePullPolicy: Always
+            args: 
+            - /bin/sh
+            - -c
+            - >
+                curl -kv -X PUT -d "" https://entrydns.net/records/modify/$TOKEN 2>&1
+          restartPolicy: Never
